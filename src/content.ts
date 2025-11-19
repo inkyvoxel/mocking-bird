@@ -1,6 +1,8 @@
 import { faker } from "@faker-js/faker";
 
-function getLabelText(element: HTMLInputElement | HTMLTextAreaElement): string | null {
+function getLabelText(
+	element: HTMLInputElement | HTMLTextAreaElement,
+): string | null {
 	const id = element.id;
 	if (id) {
 		const label = document.querySelector(`label[for="${id}"]`);
@@ -9,12 +11,23 @@ function getLabelText(element: HTMLInputElement | HTMLTextAreaElement): string |
 	return null;
 }
 
-function matchesAttribute(element: HTMLInputElement | HTMLTextAreaElement, keywords: string[]): boolean {
-	const attrs = [element.type, element.name, element.id, element.placeholder, getLabelText(element)].map(a => a?.toLowerCase());
-	return attrs.some(attr => attr && keywords.some(kw => attr.includes(kw)));
+function matchesAttribute(
+	element: HTMLInputElement | HTMLTextAreaElement,
+	keywords: string[],
+): boolean {
+	const attrs = [
+		element.type,
+		element.name,
+		element.id,
+		element.placeholder,
+		getLabelText(element),
+	].map((a) => a?.toLowerCase());
+	return attrs.some((attr) => attr && keywords.some((kw) => attr.includes(kw)));
 }
 
-function detectFieldType(element: HTMLInputElement | HTMLTextAreaElement): string {
+function detectFieldType(
+	element: HTMLInputElement | HTMLTextAreaElement,
+): string {
 	// Subtype checks first
 	if (matchesAttribute(element, ["first"])) return "firstName";
 	if (matchesAttribute(element, ["last"])) return "lastName";
@@ -31,7 +44,11 @@ function detectFieldType(element: HTMLInputElement | HTMLTextAreaElement): strin
 	if (matchesAttribute(element, ["name"])) return "name";
 	if (matchesAttribute(element, ["address"])) return "address";
 	if (matchesAttribute(element, ["url"])) return "url";
-	if (element.type?.toLowerCase() === "number" || matchesAttribute(element, ["number"])) return "number";
+	if (
+		element.type?.toLowerCase() === "number" ||
+		matchesAttribute(element, ["number"])
+	)
+		return "number";
 	// Default to text
 	return "text";
 }
@@ -71,20 +88,23 @@ function generateMockData(type: string): string {
 	}
 }
 
+function triggerInputEvents(
+	element: HTMLInputElement | HTMLTextAreaElement,
+): void {
+	element.dispatchEvent(new Event("input", { bubbles: true }));
+	element.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 document.addEventListener("dblclick", (event) => {
 	if (!event.altKey) return;
 
 	const target = event.target as HTMLElement;
 	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
 		const element = target as HTMLInputElement | HTMLTextAreaElement;
-		console.log(`[Mocking Bird] Event detected: altKey=${event.altKey}, target=${target.tagName}`);
-		console.log(`[Mocking Bird] Element attributes: name="${element.name}", id="${element.id}", type="${element.type}"`);
 		const fieldType = detectFieldType(element);
-		console.log(`[Mocking Bird] Field type detection result: ${fieldType}`);
 		const mockData = generateMockData(fieldType);
-		console.log(`[Mocking Bird] Generated mock data: "${mockData}"`);
 		element.value = mockData;
-		console.log(`[Mocking Bird] Final value setting: element.value = "${element.value}"`);
+		triggerInputEvents(element);
 		event.preventDefault();
 	}
 });
