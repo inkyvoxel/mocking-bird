@@ -1,0 +1,16 @@
+{
+	"manifest_version": 3,
+	"name": "Mocking Bird",
+	"version": "0.0.1",
+	"description": "A browser extension to populate forms with mocked data for developers and QAs.",
+	"permissions": [],
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content.js"]
+		}
+	],
+	"action": {
+		"default_title": "Mocking Bird"
+	}
+}

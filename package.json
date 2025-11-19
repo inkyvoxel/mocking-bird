@@ -1,13 +1,21 @@
 {
-  "name": "mocking-bird",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@biomejs/biome": "2.3.6",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "mocking-bird",
+	"type": "module",
+	"private": true,
+	"dependencies": {
+		"@faker-js/faker": "^10.1.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.6",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"scripts": {
+		"build": "bun build ./src/content.ts --outdir ./dist --target browser && cp manifest.json dist/",
+		"dev": "bun run build",
+		"lint": "biome check .",
+		"format": "biome format --write ."
+	}
 }
