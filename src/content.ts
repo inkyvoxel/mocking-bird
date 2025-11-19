@@ -95,16 +95,46 @@ function triggerInputEvents(
 	element.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-document.addEventListener("dblclick", (event) => {
-	if (!event.altKey) return;
-
-	const target = event.target as HTMLElement;
+function handleAction(target: HTMLElement) {
 	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
 		const element = target as HTMLInputElement | HTMLTextAreaElement;
 		const fieldType = detectFieldType(element);
 		const mockData = generateMockData(fieldType);
 		element.value = mockData;
 		triggerInputEvents(element);
+	} else if (target.tagName === "SELECT") {
+		const selectElement = target as HTMLSelectElement;
+		if (selectElement.disabled) return;
+		const options = Array.from(selectElement.options).filter(
+			(option) => !option.disabled,
+		);
+		if (options.length > 0) {
+			const randomIndex = Math.floor(Math.random() * options.length);
+			const randomOption = options[randomIndex];
+			if (randomOption) {
+				selectElement.value = randomOption.value;
+				selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+			}
+		}
+	}
+}
+
+document.addEventListener("dblclick", (event) => {
+	if (!event.altKey) return;
+	const target = event.target as HTMLElement;
+	const input = target.closest("input, textarea") as HTMLElement;
+	if (input) {
+		handleAction(input);
+		event.preventDefault();
+	}
+});
+
+document.addEventListener("click", (event) => {
+	if (!event.altKey) return;
+	const target = event.target as HTMLElement;
+	const select = target.closest("select") as HTMLElement;
+	if (select) {
+		handleAction(select);
 		event.preventDefault();
 	}
 });

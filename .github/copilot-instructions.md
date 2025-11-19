@@ -1,35 +1,44 @@
 # Mocking Bird - AI Coding Guidelines
 
 ## Project Overview
-Mocking Bird is a Manifest V3 browser extension that populates form fields with realistic mocked data using Alt+double-click. Built with TypeScript, Bun, and Faker.js for cross-browser compatibility (Chrome/Firefox).
+Mocking Bird is a Manifest V3 browser extension that populates form fields with realistic mocked data. It uses `bun` for building and `@faker-js/faker` for data generation.
 
 ## Architecture
-- **Content Script**: `src/content.ts` - Single entry point handling form detection and data injection
-- **Build System**: Bun-based bundling to `dist/` with manifest copy
-- **Extension Manifest**: `manifest.json` - Defines content scripts and permissions
+- **Entry Point**: `src/content.ts` is the sole content script. It runs on `<all_urls>` and handles all logic.
+- **Build Output**: `dist/` contains the bundled `content.js` and `manifest.json`.
+- **Manifest**: `manifest.json` defines the extension configuration.
 
-## Key Patterns
-- **Field Detection**: Analyze `type`, `name`, `id`, `placeholder` attributes for type inference (see `detectFieldType` in `src/content.ts`)
-- **Data Generation**: Use `@faker-js/faker` methods like `faker.internet.email()`, `faker.person.fullName()` for realistic data
-- **Event Handling**: Alt+double-click listener on document, prevent default to avoid text selection
+## Key Patterns & Logic
+- **Field Detection**:
+  - `detectFieldType(element)` determines the data type (e.g., "email", "firstName").
+  - `matchesAttribute(element, keywords)` checks `type`, `name`, `id`, `placeholder`, and associated `<label>` text.
+  - `getLabelText(element)` finds the label via `for` attribute matching the input's `id`.
+- **Data Generation**:
+  - `generateMockData(type)` maps detected types to `faker` methods (e.g., `faker.internet.email()`).
+- **User Interaction**:
+  - **Inputs/Textareas**: `dblclick` + `Alt` key.
+  - **Selects**: `click` + `Alt` key (picks a random enabled option).
+- **Reactivity**:
+  - `triggerInputEvents(element)` dispatches `input` and `change` events after setting values to ensure compatibility with frameworks like React/Vue.
 
 ## Development Workflow
-- **Build**: `bun run build` - Bundles `src/content.ts` to `dist/content.js` and copies `manifest.json`
-- **Lint/Format**: `biome check .` and `biome format --write .` for code quality
-- **Testing**: Load unpacked extension from `dist/` in browser dev mode (`chrome://extensions` or `about:debugging`)
+- **Build**: `bun run build` (Bundles `src/content.ts` -> `dist/content.js` and copies `manifest.json`).
+- **Lint & Format**: `biome check .` and `biome format --write .`.
+- **Dependencies**: Use `bun install` / `bun add`.
+- **Testing**: Load the `dist/` folder as an unpacked extension in Chrome/Edge/Brave (`chrome://extensions`).
 
-## Conventions
-- **Imports**: ES modules with `import { faker } from "@faker-js/faker"`
-- **TypeScript**: Strict mode enabled, target ESNext, JSX for potential future UI
-- **Naming**: CamelCase functions, lowercase attribute checks with includes() for flexibility
-- **Error Handling**: Minimal - assume valid DOM elements, no try/catch in core logic
+## Coding Conventions
+- **TypeScript**: Strict mode. Use explicit types for DOM elements (e.g., `HTMLInputElement`).
+- **DOM Access**: Use `closest()` to handle clicks on child elements of inputs.
+- **Error Handling**: Fail silently or return null/default values rather than throwing errors, as this runs in the user's browsing context.
+- **Imports**: Use named imports from `@faker-js/faker`.
 
-## Integration Points
-- **Browser APIs**: Content scripts run in isolated world, access DOM but not page scripts
-- **Faker.js**: Peer dependency, generate data synchronously on user interaction
-- **Manifest V3**: No background scripts, use action for popup if needed
-
-## Code Examples
-- Add new field type: Extend `detectFieldType` with attribute checks, add case in `generateMockData`
-- Modify data: Use faker methods like `faker.company.name()` for business fields
-- Event tweaks: Adjust modifier key or add shift/ctrl combinations in dblclick listener
+## Example: Adding a New Field Type
+1.  Add keywords to `detectFieldType` in `src/content.ts`:
+    ```typescript
+    if (matchesAttribute(element, ["custom"])) return "customType";
+    ```
+2.  Add generation logic to `generateMockData`:
+    ```typescript
+    case "customType": return faker.some.method();
+    ```
