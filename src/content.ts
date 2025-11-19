@@ -77,9 +77,14 @@ document.addEventListener("dblclick", (event) => {
 	const target = event.target as HTMLElement;
 	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
 		const element = target as HTMLInputElement | HTMLTextAreaElement;
+		console.log(`[Mocking Bird] Event detected: altKey=${event.altKey}, target=${target.tagName}`);
+		console.log(`[Mocking Bird] Element attributes: name="${element.name}", id="${element.id}", type="${element.type}"`);
 		const fieldType = detectFieldType(element);
+		console.log(`[Mocking Bird] Field type detection result: ${fieldType}`);
 		const mockData = generateMockData(fieldType);
+		console.log(`[Mocking Bird] Generated mock data: "${mockData}"`);
 		element.value = mockData;
+		console.log(`[Mocking Bird] Final value setting: element.value = "${element.value}"`);
 		event.preventDefault();
 	}
 });
